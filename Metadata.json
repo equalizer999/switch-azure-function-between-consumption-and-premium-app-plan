@@ -1,0 +1,20 @@
+{
+    "Author": "Cuno Reijman",
+    "ContentSize": 9636,
+    "ContentUrl": "https://raw.githubusercontent.com/equalizer999/switch-azure-function-between-consumption-and-premium-app-plan/main/Set-FunctionAppAppServicePlan.ps1",
+    "DownloadCount": 0,
+    "Id": "switch-azure-function-between-consumption-and-premium-app-plan",
+    "IsFederated": false,
+    "IsWorkflow": false,
+    "Popularity": 0,
+    "RaterCount": 0,
+    "Rating": 0.0,
+    "ReleaseDate": "2021-3-19T00:00:00",
+    "RunbookKind": 5,
+    "RunbookKindString": "PowerShell",
+    "Summary": "This PowerShell Runbook (compatible with PowerShell Core) connects to Azure using an Automation Run As account and switches the specified Azure Function from a consumption app service plan to a premium app service plan or vice versa. You can attach a recurring schedule to this runbook to run it at a specific times. So the most cost effective solution can be set for short bursts of (planned) high demanding (but cost aware) function execution loads.",
+    "Title": "Switch an Azure Function App between a consumption and a premium app service plan",
+    "UpdatedDate": "2021-3-19T00:00:00",
+    "Url": "https://github.com/equalizer999/switch-azure-function-between-consumption-and-premium-app-plan",
+    "UserTags": "Microsoft Azure, Powershell, Azure Automation, Function Apps, App Service Plan, Consumption, Premium"
+}
