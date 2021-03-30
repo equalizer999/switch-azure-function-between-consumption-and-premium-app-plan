@@ -11,8 +11,17 @@
         the Module Gallery. See https://docs.microsoft.com/en-us/azure/automation/automation-runbook-gallery#import-a-module-from-the-module-gallery-with-the-azure-portal
         for more information.
 
+    .PARAMETER UseAutomationConnection
+        Optional. Indicates if automation connection (name) should be used. Default is True.
+
     .PARAMETER AutomationConnectionName
         Optional. The automation connection name. Default is 'AzureRunAsConnection'.
+
+    .PARAMETER UseAutomationCredential
+        Optional. Indicates if automation credential (name) should be used. Default is False.
+
+    .PARAMETER AutomationCredentialName
+        Optional. The automation credential name. Default is 'admin-user'.
 
     .PARAMETER ResourceGroupName
         Required. The resource group name. No default is set.
@@ -49,7 +58,9 @@
                 -ConsumptionAppPlanName 'myFunctionApp-asp-cons-prd' -PremiumAppPlanName 'myFunctionApp-asp-prem-prd'
 
     .EXAMPLE
-        .\Set-FunctionAppAppServicePlan -AutomationConnectionName 'AzureConnection-Prd' -ResourceGroupName 'myFunctionApp-rg-prd' `
+        .\Set-FunctionAppAppServicePlan -UseUseAutomationConnection $True -AutomationConnectionName 'AzureConnection-Prd' `
+                -UseAutomationCredential $False -AutomationCredentialName "my-admin-user" `
+                -ResourceGroupName 'myFunctionApp-rg-prd' `
                 -FunctionAppName 'myFunctionApp-prd' -ConsumptionAppPlanName 'myFunctionApp-asp-cons-prd'  `
                 -PremiumAppPlanName 'myFunctionApp-asp-prem-prd' -PremiumAppPlanSku 'EP2' `
                 -PremiumAppPlanWorkType 'Windows' -PremiumAppPlanMinimumWorkerCount 2 `
@@ -63,7 +74,7 @@
 
     .NOTES
         AUTHOR: Cuno Reijman
-        LASTEDIT: Mar 19, 2021
+        LASTEDIT: Mar 30, 2021
         BLOG: https://blog.codespeedlane.com
         
 #>
@@ -72,8 +83,18 @@
 
 Param (
     [Parameter (Mandatory = $false)]
+    [Boolean] $UseAutomationConnection = $true,
+
+    [Parameter (Mandatory = $false)]
     [ValidateNotNullOrEmpty()]
     [String] $AutomationConnectionName = "AzureRunAsConnection",
+   
+    [Parameter (Mandatory = $false)]
+    [Boolean] $UseAutomationCredential = $false,
+
+    [Parameter (Mandatory = $false)]
+    [ValidateNotNullOrEmpty()]
+    [String] $AutomationCredentialName = "admin-user",
 
     [Parameter (Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
@@ -115,27 +136,54 @@ Param (
 )
 
 ## Login
-try {
-    $servicePrincipalConnection = Get-AutomationConnection -Name $AutomationConnectionName         
+if ($UseAutomationConnection -eq $true) {
+    try {
+        $loginBaseLogMessage = "Logging in to Azure using automation connection"
+        Write-Output $loginBaseLogMessage
+        
+        $servicePrincipalConnection = Get-AutomationConnection -Name $AutomationConnectionName         
+    
+        Connect-AzAccount `
+            -ServicePrincipal `
+            -Tenant $servicePrincipalConnection.TenantID `
+            -ApplicationId $servicePrincipalConnection.ApplicationID `
+            -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint | Out-Null
+    
+        Write-Output "$loginBaseLogMessage [Success]"
+    }
+    catch {
+        if (!$servicePrincipalConnection) {
+            throw "Connection $AutomationConnectionName not found."
+        } else {
+            Write-Error -Message $_.Exception
+    
+            throw $_.Exception
+        }
+    }
+}
 
-    $loginBaseLogMessage = "Logging in to Azure"
-    Write-Output $loginBaseLogMessage
+if ($UseAutomationCredential -eq $true) {
+    try {
+        $loginBaseLogMessage = "Logging in to Azure using automation credential"
+        Write-Output $loginBaseLogMessage
 
-    Connect-AzAccount `
-        -ServicePrincipal `
-        -Tenant $servicePrincipalConnection.TenantID `
-        -ApplicationId $servicePrincipalConnection.ApplicationID `
-        -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint | Out-Null
+        $myCred = Get-AutomationPSCredential -Name $AutomationCredentialName
+        $userName = $myCred.UserName
+        $securePassword = $myCred.Password
+        $myPsCred = New-Object System.Management.Automation.PSCredential ($userName,$securePassword)
+        
+        Connect-AzAccount -Credential $myPsCred | Out-Null
 
         Write-Output "$loginBaseLogMessage [Success]"
-}
-catch {
-    if (!$servicePrincipalConnection) {
-        throw "Connection $AutomationConnectionName not found."
-    } else {
-        Write-Error -Message $_.Exception
-
-        throw $_.Exception
+    }
+    catch {
+        if (!$servicePrincipalConnection) {
+            throw "Credentials $AutomationCredentialName not found."
+        } else {
+            Write-Error -Message $_.Exception
+    
+            throw $_.Exception
+        }
     }
 }
 
