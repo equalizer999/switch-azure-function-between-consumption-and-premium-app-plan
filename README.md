@@ -20,5 +20,5 @@ https://blog.codespeedlane.com
 2021-30-03
 
 # RELEASE NOTES
-2021-30-03 Added Automation Credential support
-2021-19-03 First release
+- 2021-30-03 Added Automation Credential support
+- 2021-19-03 First release
