@@ -17,7 +17,8 @@ Cuno Reijman
 https://blog.codespeedlane.com
 
 # LAST EDIT
-2021-19-03
+2021-30-03
 
 # RELEASE NOTES
+2021-30-03 Added Automation Credential support
 2021-19-03 First release
